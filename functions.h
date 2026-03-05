@@ -1,0 +1,35 @@
+#ifdef FUNCTIONS_H
+#define FUNCTIONS_H
+
+#include <glm/glm.hpp>
+#include <vector>
+
+// Gravitational constant (arbitrary scale for simulation)
+const float G = 6.67430e-3f; // scaled down for visual simulation
+
+// Struct representing a celestial body
+struct Body {
+  glm::vec3 position;        // current position
+  glm::vec3 velocity;        // current velocity
+  float mass;                // mass (affects gravity)
+  float radius;              // for rendering
+  glm::vec3 color;           // RGB color
+  std::vector<Body*> moons;  // pointers to moons orbiting this body
+};
+
+// Physics update: compute gravitational forces and update velocities & positions
+void updateGravity(std::vector<Body>& bodies, float deltaTime);
+
+// Rendering: draw a sphere at body's current position
+void drawBody(const Body& body);
+
+// Utility: create a single celestial body
+Body createBody(const glm::vec3& position,
+                const glm::vec3& velocity,
+                float mass, float radius,
+                const glm::vec3& color);
+
+// Factory: create the full solar system
+std::vector<Body> createSolarSystem();
+
+#endif 
