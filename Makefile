@@ -1,12 +1,12 @@
 # Compiler
 CXX = g++
-CXXFLAGS = -Wall -std=c++17
+CXXFLAGS = -Wall -std=c++17 -fopenmp  
 
 # Libraries
-LIBS = -lglfw -lGL
+LIBS = -lglfw -lGL -lGLU -lglut       
 
 # Source files
-SRCS = main.cpp
+SRCS = main.cpp functions.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 # Output executable
@@ -15,9 +15,9 @@ TARGET = solar_system
 # Default target
 all: $(TARGET)
 
-# Link object files to create executable
+# Link object files to create executable (include -fopenmp!)
 $(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $(TARGET) $(LIBS)
+	$(CXX) $(OBJS) -o $(TARGET) $(CXXFLAGS) $(LIBS)
 
 # Compile source files to object files
 %.o: %.cpp
