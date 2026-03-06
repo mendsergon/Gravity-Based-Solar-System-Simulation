@@ -41,7 +41,7 @@ int main() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Enable lighting 
+    // Enable lighting
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);  // Light 0
 
@@ -57,13 +57,7 @@ int main() {
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
-    // Setup 3D perspective — far plane extended for full solar system scale
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0, 800.0/600.0, 0.1, 50000.0);
-    glMatrixMode(GL_MODELVIEW);
-
-    // Create bodies 
+    // Create bodies
     std::vector<Body> bodies = createSolarSystem();
 
     // Main loop
@@ -72,12 +66,20 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
 
-        // Dynamically fit all bodies in view
+        // Dynamically fit all bodies in view based on furthest body
         float maxDist = 0.0f;
         for (const auto& body : bodies)
             maxDist = std::max(maxDist, glm::length(body.position));
         float camDist = maxDist * 2.0f;
 
+        // Update projection each frame to match scene size
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(45.0, 800.0/600.0, 0.1, camDist * 10.0f);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        // Camera pulled back to fit the full solar system in view
         gluLookAt(0.0, camDist * 0.3, camDist,
                   0.0, 0.0, 0.0,
                   0.0, 1.0, 0.0);
@@ -86,10 +88,13 @@ int main() {
         GLfloat light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };  // light at sun position
         glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
-        // Update physics 
-        updateGravity(bodies, 0.01f);
+        // Update physics
+        // Multiple physics steps per frame — stable orbits at same visual speed
+        for (int step = 0; step < 10; ++step) {
+            updateGravity(bodies, 0.001f);
+        }
 
-        //  Draw all bodies 
+        // Draw all bodies
         for (auto& body : bodies) {
             drawBody(body);
         }
