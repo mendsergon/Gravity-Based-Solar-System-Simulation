@@ -26,7 +26,7 @@ Body createBody(const glm::vec3& position,
 }
 
 std::vector<Body> createSolarSystem() {
-  std::vector<Body> bodies(13); // pre-size
+  std::vector<Body> bodies(19); // pre-size
   #pragma omp parallel sections
   {
     #pragma omp section
@@ -220,6 +220,104 @@ std::vector<Body> createSolarSystem() {
           0.018f,                               // mass in Earth units
           1.89f,                                // 0.378 Earth radii * 5
           glm::vec3(0.4f, 0.35f, 0.3f)         // dark grey-brown heavily cratered
+      );
+    }
+    #pragma omp section
+    {
+      // Saturn: 9.537 AU, mass 95.2 Earth, circular orbit in XZ plane
+      // Hill sphere ~65.4 sim units, radius kept below that
+      float saturn_dist = 1430.55f;                            // 9.537 * 150
+      float saturn_v    = sqrt(G * 332800.0f / saturn_dist);
+      bodies[13] = createBody(
+          glm::vec3(saturn_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -saturn_v),
+          95.2f,                                // mass in Earth units
+          47.25f,                               // 9.45 Earth radii * 5
+          glm::vec3(0.85f, 0.75f, 0.5f)        // pale gold
+      );
+      // Saturn rings — inner just outside planet, outer scaled to real proportions
+      bodies[13].hasRing         = true;
+      bodies[13].ringInnerRadius = 52.0f;
+      bodies[13].ringOuterRadius = 107.0f;
+    }
+    #pragma omp section
+    {
+      // Titan: 0.00817 AU from Saturn, mass 0.0225 Earth, orbits Saturn in XZ plane
+      // sits within Saturn Hill sphere (~65.4 sim units), outside Saturn radius
+      float saturn_dist = 1430.55f;                            // 9.537 * 150
+      float saturn_v    = sqrt(G * 332800.0f / saturn_dist);
+      float titan_dist  = 1.226f;                              // 0.00817 * 150
+      float titan_v     = sqrt(G * 95.2f / titan_dist);       // orbital velocity around Saturn
+      bodies[14] = createBody(
+          glm::vec3(saturn_dist + titan_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(saturn_v + titan_v)),
+          0.0225f,                              // mass in Earth units
+          2.02f,                                // 0.404 Earth radii * 5
+          glm::vec3(0.8f, 0.6f, 0.3f)          // orange hazy atmosphere
+      );
+    }
+    #pragma omp section
+    {
+      // Rhea: 0.00352 AU from Saturn, mass 0.000331 Earth, orbits Saturn in XZ plane
+      // sits within Saturn Hill sphere (~65.4 sim units), outside Saturn radius
+      float saturn_dist = 1430.55f;                            // 9.537 * 150
+      float saturn_v    = sqrt(G * 332800.0f / saturn_dist);
+      float rhea_dist   = 0.528f;                              // 0.00352 * 150
+      float rhea_v      = sqrt(G * 95.2f / rhea_dist);        // orbital velocity around Saturn
+      bodies[15] = createBody(
+          glm::vec3(saturn_dist + rhea_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(saturn_v + rhea_v)),
+          0.000331f,                            // mass in Earth units
+          0.6f,                                 // 0.120 Earth radii * 5
+          glm::vec3(0.7f, 0.7f, 0.65f)         // grey-white icy
+      );
+    }
+    #pragma omp section
+    {
+      // Dione: 0.00252 AU from Saturn, mass 0.000185 Earth, orbits Saturn in XZ plane
+      // sits within Saturn Hill sphere (~65.4 sim units), outside Saturn radius
+      float saturn_dist = 1430.55f;                            // 9.537 * 150
+      float saturn_v    = sqrt(G * 332800.0f / saturn_dist);
+      float dione_dist  = 0.378f;                              // 0.00252 * 150
+      float dione_v     = sqrt(G * 95.2f / dione_dist);       // orbital velocity around Saturn
+      bodies[16] = createBody(
+          glm::vec3(saturn_dist + dione_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(saturn_v + dione_v)),
+          0.000185f,                            // mass in Earth units
+          0.44f,                                // 0.0881 Earth radii * 5
+          glm::vec3(0.75f, 0.75f, 0.7f)        // grey-white icy
+      );
+    }
+    #pragma omp section
+    {
+      // Tethys: 0.00197 AU from Saturn, mass 0.000108 Earth, orbits Saturn in XZ plane
+      // sits within Saturn Hill sphere (~65.4 sim units), outside Saturn radius
+      float saturn_dist = 1430.55f;                            // 9.537 * 150
+      float saturn_v    = sqrt(G * 332800.0f / saturn_dist);
+      float tethys_dist = 0.296f;                              // 0.00197 * 150
+      float tethys_v    = sqrt(G * 95.2f / tethys_dist);      // orbital velocity around Saturn
+      bodies[17] = createBody(
+          glm::vec3(saturn_dist + tethys_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(saturn_v + tethys_v)),
+          0.000108f,                            // mass in Earth units
+          0.41f,                                // 0.0827 Earth radii * 5
+          glm::vec3(0.8f, 0.8f, 0.78f)         // bright white icy
+      );
+    }
+    #pragma omp section
+    {
+      // Enceladus: 0.00159 AU from Saturn, mass 0.0000181 Earth, orbits Saturn in XZ plane
+      // sits within Saturn Hill sphere (~65.4 sim units), outside Saturn radius
+      float saturn_dist    = 1430.55f;                         // 9.537 * 150
+      float saturn_v       = sqrt(G * 332800.0f / saturn_dist);
+      float enceladus_dist = 0.239f;                           // 0.00159 * 150
+      float enceladus_v    = sqrt(G * 95.2f / enceladus_dist); // orbital velocity around Saturn
+      bodies[18] = createBody(
+          glm::vec3(saturn_dist + enceladus_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(saturn_v + enceladus_v)),
+          0.0000181f,                           // mass in Earth units
+          0.2f,                                 // 0.0397 Earth radii * 5, floored for visibility
+          glm::vec3(0.9f, 0.9f, 0.95f)         // bright white highly reflective
       );
     }
   }
