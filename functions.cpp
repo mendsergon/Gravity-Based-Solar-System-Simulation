@@ -19,6 +19,9 @@ Body createBody(const glm::vec3& position,
   body.mass = mass;
   body.radius = radius;
   body.color = color;
+  body.hasRing = false;        // no ring by default
+  body.ringInnerRadius = 0.0f;
+  body.ringOuterRadius = 0.0f;
   return body;
 }
 
@@ -292,6 +295,20 @@ void drawBody(const Body& body) {
   // Reset emissive so future planets are shaded normally
   GLfloat no_emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
   glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, no_emissive);
+
+  // Draw ring if body has one
+  if (body.hasRing) {
+    glDisable(GL_LIGHTING);
+    glColor4f(0.8f, 0.7f, 0.5f, 0.6f); // sandy semi-transparent ring color
+    glBegin(GL_TRIANGLE_STRIP);
+    for (int i = 0; i <= 360; i += 2) {
+      float angle = glm::radians((float)i);
+      glVertex3f(cos(angle) * body.ringInnerRadius, 0.0f, sin(angle) * body.ringInnerRadius);
+      glVertex3f(cos(angle) * body.ringOuterRadius, 0.0f, sin(angle) * body.ringOuterRadius);
+    }
+    glEnd();
+    glEnable(GL_LIGHTING);
+  }
 
   glPopMatrix();
   gluDeleteQuadric(quad);

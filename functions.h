@@ -18,6 +18,9 @@ struct Body {
   float radius;                // for rendering
   glm::vec3 color;             // RGB color
   std::deque<glm::vec3> trail; // position history for orbit trail
+  bool hasRing;                // whether to draw a ring around this body
+  float ringInnerRadius;       // inner radius of ring
+  float ringOuterRadius;       // outer radius of ring
 };
 
 // Physics update: compute gravitational forces and update velocities & positions
