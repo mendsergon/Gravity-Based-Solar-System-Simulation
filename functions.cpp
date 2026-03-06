@@ -23,7 +23,7 @@ Body createBody(const glm::vec3& position,
 }
 
 std::vector<Body> createSolarSystem() {
-  std::vector<Body> bodies(3); // pre-size for sun + mercury + venus
+  std::vector<Body> bodies(5); // pre-size for sun + mercury + venus + earth + moon
   #pragma omp parallel sections
   {
     #pragma omp section
@@ -53,7 +53,7 @@ std::vector<Body> createSolarSystem() {
     }
     #pragma omp section
     {
-      // Venus: 0.723 AU, mass 0.815 Earth, slightly larger than Mercury visually
+      // Venus: 0.723 AU, mass 0.815 Earth, circular orbit in XZ plane
       // Hill sphere ~1.0 sim units, radius kept below that
       float venus_dist = 108.45f;                             // 0.723 * 150
       float venus_v    = sqrt(G * 332800.0f / venus_dist);
@@ -63,6 +63,36 @@ std::vector<Body> createSolarSystem() {
           0.815f,                               // mass in Earth units
           0.85f,                                // below Hill sphere ~1.0, bigger than Mercury
           glm::vec3(0.9f, 0.75f, 0.45f)        // yellowish-orange
+      );
+    }
+    #pragma omp section
+    {
+      // Earth: 1.0 AU, mass 1.0 Earth, circular orbit in XZ plane
+      // Hill sphere ~1.5 sim units, radius kept below that
+      float earth_dist = 150.0f;                              // 1.0 * 150
+      float earth_v    = sqrt(G * 332800.0f / earth_dist);
+      bodies[3] = createBody(
+          glm::vec3(earth_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -earth_v),
+          1.0f,                                 // mass in Earth units
+          1.0f,                                 // below Hill sphere ~1.5, bigger than Venus
+          glm::vec3(0.2f, 0.4f, 1.0f)          // blue
+      );
+    }
+    #pragma omp section
+    {
+      // Moon: 0.00257 AU from Earth, mass 0.0123 Earth, orbits Earth in XZ plane
+      // sits within Earth Hill sphere (~1.5 sim units), outside Earth radius
+      float earth_dist = 150.0f;                              // 1.0 * 150
+      float earth_v    = sqrt(G * 332800.0f / earth_dist);
+      float moon_dist  = 1.2f;                               // within Hill sphere ~1.5
+      float moon_v     = sqrt(G * 1.0f / moon_dist);        // orbital velocity around Earth
+      bodies[4] = createBody(
+          glm::vec3(earth_dist + moon_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(earth_v + moon_v)),
+          0.0123f,                                            // mass in Earth units
+          0.3f,                                               // below Hill sphere, smaller than Earth
+          glm::vec3(0.7f, 0.7f, 0.7f)                        // grey
       );
     }
   }
