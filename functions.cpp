@@ -19,24 +19,52 @@ Body createBody(const glm::vec3& position,
   body.mass = mass;
   body.radius = radius;
   body.color = color;
-  body.moons.clear(); // Start with no moons
   return body;
 }
 
-// Create Solar System
 std::vector<Body> createSolarSystem() {
-  std::vector<Body> bodies;
+  std::vector<Body> bodies(3); // pre-size for sun + mercury + venus
 
-  // Sun
-  Body sun = createBody(
-      glm::vec3(0.0f, 0.0f, 0.0f),
-      glm::vec3(0.0f, 0.0f, 0.0f),
-      332800.0f,                    // mass in Earth units
-      32.8f,                        // radius scaled to Earth
-      glm::vec3(1.0f, 1.0f, 0.0f)   // yellow color
+  #pragma omp parallel sections
+  {
+    #pragma omp section
+    {
+      // Sun
+      bodies[0] = createBody(
+          glm::vec3(0.0f, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, 0.0f),
+          332800.0f,                    // mass in Earth units
+          32.8f,                        // radius scaled to Earth
+          glm::vec3(1.0f, 1.0f, 0.0f)  // yellow color
       );
-
-  bodies.push_back(sun);
+    }
+    #pragma omp section
+    {
+      // Mercury: 0.387 AU, mass 0.0553 Earth, circular orbit in XZ plane
+      float mercury_dist = 58.05f;                             // 0.387 * 150
+      float mercury_v    = sqrt(G * 332800.0f / mercury_dist);
+      bodies[1] = createBody(
+          glm::vec3(mercury_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -mercury_v),
+          0.0553f,                              // mass in Earth units
+          3.0f,                                 // visually enlarged
+          glm::vec3(0.6f, 0.6f, 0.6f)          // grey
+      );
+    }
+    #pragma omp section
+    {
+      // Venus: 0.723 AU, mass 0.815 Earth, slightly larger than Mercury visually
+      float venus_dist = 108.45f;                             // 0.723 * 150
+      float venus_v    = sqrt(G * 332800.0f / venus_dist);
+      bodies[2] = createBody(
+          glm::vec3(venus_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -venus_v),
+          0.815f,                               // mass in Earth units
+          4.5f,                                 // visually enlarged, bigger than Mercury
+          glm::vec3(0.9f, 0.75f, 0.45f)        // yellowish-orange
+      );
+    }
+  }
 
   return bodies;
 }

@@ -14,7 +14,6 @@ struct Body {
   float mass;                // mass (affects gravity)
   float radius;              // for rendering
   glm::vec3 color;           // RGB color
-  std::vector<Body*> moons;  // pointers to moons orbiting this body
 };
 
 // Physics update: compute gravitational forces and update velocities & positions
