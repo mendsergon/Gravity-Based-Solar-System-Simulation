@@ -23,7 +23,7 @@ Body createBody(const glm::vec3& position,
 }
 
 std::vector<Body> createSolarSystem() {
-  std::vector<Body> bodies(8); // pre-size for sun + mercury + venus + earth + moon + mars + phobos + deimos
+  std::vector<Body> bodies(13); // pre-size
   #pragma omp parallel sections
   {
     #pragma omp section
@@ -139,6 +139,84 @@ std::vector<Body> createSolarSystem() {
           1.4762e-9f,                                         // mass in Earth units
           0.4f,                                               // floored for visibility, smaller than Phobos
           glm::vec3(0.5f, 0.45f, 0.35f)                      // dark grey-brown, slightly lighter
+      );
+    }
+    #pragma omp section
+    {
+      // Jupiter: 5.203 AU, mass 317.8 Earth, circular orbit in XZ plane
+      // Hill sphere ~53.3 sim units, radius kept below that
+      float jupiter_dist = 780.45f;                            // 5.203 * 150
+      float jupiter_v    = sqrt(G * 332800.0f / jupiter_dist);
+      bodies[8] = createBody(
+          glm::vec3(jupiter_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -jupiter_v),
+          317.8f,                               // mass in Earth units
+          56.05f,                               // 11.21 Earth radii * 5
+          glm::vec3(0.8f, 0.7f, 0.5f)          // tan/beige
+      );
+    }
+    #pragma omp section
+    {
+      // Io: 0.002819 AU from Jupiter, mass 0.015 Earth, orbits Jupiter in XZ plane
+      // sits within Jupiter Hill sphere (~53.3 sim units), outside Jupiter radius
+      float jupiter_dist = 780.45f;                            // 5.203 * 150
+      float jupiter_v    = sqrt(G * 332800.0f / jupiter_dist);
+      float io_dist      = 0.423f;                             // 0.002819 * 150
+      float io_v         = sqrt(G * 317.8f / io_dist);        // orbital velocity around Jupiter
+      bodies[9] = createBody(
+          glm::vec3(jupiter_dist + io_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(jupiter_v + io_v)),
+          0.015f,                               // mass in Earth units
+          1.43f,                                // 0.286 Earth radii * 5
+          glm::vec3(0.9f, 0.7f, 0.2f)          // yellow-orange volcanic
+      );
+    }
+    #pragma omp section
+    {
+      // Europa: 0.004486 AU from Jupiter, mass 0.008 Earth, orbits Jupiter in XZ plane
+      // sits within Jupiter Hill sphere (~53.3 sim units), outside Io orbit
+      float jupiter_dist = 780.45f;                            // 5.203 * 150
+      float jupiter_v    = sqrt(G * 332800.0f / jupiter_dist);
+      float europa_dist  = 0.673f;                             // 0.004486 * 150
+      float europa_v     = sqrt(G * 317.8f / europa_dist);    // orbital velocity around Jupiter
+      bodies[10] = createBody(
+          glm::vec3(jupiter_dist + europa_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(jupiter_v + europa_v)),
+          0.008f,                               // mass in Earth units
+          1.225f,                               // 0.245 Earth radii * 5
+          glm::vec3(0.8f, 0.7f, 0.6f)          // pale brown icy
+      );
+    }
+    #pragma omp section
+    {
+      // Ganymede: 0.007155 AU from Jupiter, mass 0.025 Earth, orbits Jupiter in XZ plane
+      // sits within Jupiter Hill sphere (~53.3 sim units), outside Europa orbit
+      float jupiter_dist  = 780.45f;                           // 5.203 * 150
+      float jupiter_v     = sqrt(G * 332800.0f / jupiter_dist);
+      float ganymede_dist = 1.073f;                            // 0.007155 * 150
+      float ganymede_v    = sqrt(G * 317.8f / ganymede_dist); // orbital velocity around Jupiter
+      bodies[11] = createBody(
+          glm::vec3(jupiter_dist + ganymede_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(jupiter_v + ganymede_v)),
+          0.025f,                               // mass in Earth units
+          2.065f,                               // 0.413 Earth radii * 5, largest moon in solar system
+          glm::vec3(0.6f, 0.6f, 0.55f)         // grey-brown
+      );
+    }
+    #pragma omp section
+    {
+      // Callisto: 0.01259 AU from Jupiter, mass 0.018 Earth, orbits Jupiter in XZ plane
+      // sits within Jupiter Hill sphere (~53.3 sim units), outside Ganymede orbit
+      float jupiter_dist  = 780.45f;                           // 5.203 * 150
+      float jupiter_v     = sqrt(G * 332800.0f / jupiter_dist);
+      float callisto_dist = 1.889f;                            // 0.01259 * 150
+      float callisto_v    = sqrt(G * 317.8f / callisto_dist); // orbital velocity around Jupiter
+      bodies[12] = createBody(
+          glm::vec3(jupiter_dist + callisto_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(jupiter_v + callisto_v)),
+          0.018f,                               // mass in Earth units
+          1.89f,                                // 0.378 Earth radii * 5
+          glm::vec3(0.4f, 0.35f, 0.3f)         // dark grey-brown heavily cratered
       );
     }
   }

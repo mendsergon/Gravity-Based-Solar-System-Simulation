@@ -60,7 +60,7 @@ int main() {
     // Setup 3D perspective — far plane extended for full solar system scale
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, 800.0/600.0, 0.1, 10000.0);
+    gluPerspective(45.0, 800.0/600.0, 0.1, 50000.0);
     glMatrixMode(GL_MODELVIEW);
 
     // Create bodies 
@@ -72,8 +72,13 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
 
-        // Camera pulled way back to fit the full solar system in view
-        gluLookAt(0.0, 300.0, 800.0,
+        // Dynamically fit all bodies in view
+        float maxDist = 0.0f;
+        for (const auto& body : bodies)
+            maxDist = std::max(maxDist, glm::length(body.position));
+        float camDist = maxDist * 2.0f;
+
+        gluLookAt(0.0, camDist * 0.3, camDist,
                   0.0, 0.0, 0.0,
                   0.0, 1.0, 0.0);
 
