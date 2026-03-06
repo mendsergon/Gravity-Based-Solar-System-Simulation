@@ -26,7 +26,7 @@ Body createBody(const glm::vec3& position,
 }
 
 std::vector<Body> createSolarSystem() {
-  std::vector<Body> bodies(19); // pre-size
+  std::vector<Body> bodies(30); // pre-size
   #pragma omp parallel sections
   {
     #pragma omp section
@@ -318,6 +318,178 @@ std::vector<Body> createSolarSystem() {
           0.0000181f,                           // mass in Earth units
           0.2f,                                 // 0.0397 Earth radii * 5, floored for visibility
           glm::vec3(0.9f, 0.9f, 0.95f)         // bright white highly reflective
+      );
+    }
+    #pragma omp section
+    {
+      // Uranus: 19.19 AU, mass 14.54 Earth, circular orbit in XZ plane
+      // Hill sphere ~69.9 sim units, radius kept below that
+      float uranus_dist = 2878.5f;                             // 19.19 * 150
+      float uranus_v    = sqrt(G * 332800.0f / uranus_dist);
+      bodies[19] = createBody(
+          glm::vec3(uranus_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -uranus_v),
+          14.54f,                               // mass in Earth units
+          20.05f,                               // 4.01 Earth radii * 5
+          glm::vec3(0.5f, 0.85f, 0.9f)         // pale cyan
+      );
+    }
+    #pragma omp section
+    {
+      // Miranda: 0.000868 AU from Uranus, mass 0.0000903 Earth, orbits Uranus in XZ plane
+      // sits within Uranus Hill sphere (~69.9 sim units), outside Uranus radius
+      float uranus_dist  = 2878.5f;                            // 19.19 * 150
+      float uranus_v     = sqrt(G * 332800.0f / uranus_dist);
+      float miranda_dist = 0.130f;                             // 0.000868 * 150
+      float miranda_v    = sqrt(G * 14.54f / miranda_dist);   // orbital velocity around Uranus
+      bodies[20] = createBody(
+          glm::vec3(uranus_dist + miranda_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(uranus_v + miranda_v)),
+          0.0000903f,                           // mass in Earth units
+          0.18f,                                // 0.0365 Earth radii * 5, floored for visibility
+          glm::vec3(0.6f, 0.6f, 0.6f)          // grey
+      );
+    }
+    #pragma omp section
+    {
+      // Ariel: 0.00127 AU from Uranus, mass 0.000203 Earth, orbits Uranus in XZ plane
+      // sits within Uranus Hill sphere (~69.9 sim units), outside Miranda orbit
+      float uranus_dist = 2878.5f;                             // 19.19 * 150
+      float uranus_v    = sqrt(G * 332800.0f / uranus_dist);
+      float ariel_dist  = 0.191f;                              // 0.00127 * 150
+      float ariel_v     = sqrt(G * 14.54f / ariel_dist);      // orbital velocity around Uranus
+      bodies[21] = createBody(
+          glm::vec3(uranus_dist + ariel_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(uranus_v + ariel_v)),
+          0.000203f,                            // mass in Earth units
+          0.29f,                                // 0.0578 Earth radii * 5
+          glm::vec3(0.7f, 0.7f, 0.68f)         // grey-white icy
+      );
+    }
+    #pragma omp section
+    {
+      // Umbriel: 0.00177 AU from Uranus, mass 0.000197 Earth, orbits Uranus in XZ plane
+      // sits within Uranus Hill sphere (~69.9 sim units), outside Ariel orbit
+      float uranus_dist  = 2878.5f;                            // 19.19 * 150
+      float uranus_v     = sqrt(G * 332800.0f / uranus_dist);
+      float umbriel_dist = 0.266f;                             // 0.00177 * 150
+      float umbriel_v    = sqrt(G * 14.54f / umbriel_dist);   // orbital velocity around Uranus
+      bodies[22] = createBody(
+          glm::vec3(uranus_dist + umbriel_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(uranus_v + umbriel_v)),
+          0.000197f,                            // mass in Earth units
+          0.29f,                                // 0.0579 Earth radii * 5
+          glm::vec3(0.4f, 0.4f, 0.4f)          // dark grey heavily cratered
+      );
+    }
+    #pragma omp section
+    {
+      // Titania: 0.00292 AU from Uranus, mass 0.000592 Earth, orbits Uranus in XZ plane
+      // sits within Uranus Hill sphere (~69.9 sim units), outside Umbriel orbit
+      float uranus_dist  = 2878.5f;                            // 19.19 * 150
+      float uranus_v     = sqrt(G * 332800.0f / uranus_dist);
+      float titania_dist = 0.438f;                             // 0.00292 * 150
+      float titania_v    = sqrt(G * 14.54f / titania_dist);   // orbital velocity around Uranus
+      bodies[23] = createBody(
+          glm::vec3(uranus_dist + titania_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(uranus_v + titania_v)),
+          0.000592f,                            // mass in Earth units
+          0.394f,                               // 0.0789 Earth radii * 5, largest Uranus moon
+          glm::vec3(0.65f, 0.62f, 0.6f)        // grey-brown icy
+      );
+    }
+    #pragma omp section
+    {
+      // Oberon: 0.00391 AU from Uranus, mass 0.000514 Earth, orbits Uranus in XZ plane
+      // sits within Uranus Hill sphere (~69.9 sim units), outside Titania orbit
+      float uranus_dist = 2878.5f;                             // 19.19 * 150
+      float uranus_v    = sqrt(G * 332800.0f / uranus_dist);
+      float oberon_dist = 0.587f;                              // 0.00391 * 150
+      float oberon_v    = sqrt(G * 14.54f / oberon_dist);     // orbital velocity around Uranus
+      bodies[24] = createBody(
+          glm::vec3(uranus_dist + oberon_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(uranus_v + oberon_v)),
+          0.000514f,                            // mass in Earth units
+          0.376f,                               // 0.0753 Earth radii * 5
+          glm::vec3(0.55f, 0.52f, 0.5f)        // dark grey-brown icy
+      );
+    }
+    #pragma omp section
+    {
+      // Neptune: 30.07 AU, mass 17.15 Earth, circular orbit in XZ plane
+      // Hill sphere ~116.0 sim units, radius kept below that
+      float neptune_dist = 4510.5f;                            // 30.07 * 150
+      float neptune_v    = sqrt(G * 332800.0f / neptune_dist);
+      bodies[25] = createBody(
+          glm::vec3(neptune_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -neptune_v),
+          17.15f,                               // mass in Earth units
+          19.45f,                               // 3.89 Earth radii * 5
+          glm::vec3(0.2f, 0.3f, 0.9f)          // deep blue
+      );
+    }
+    #pragma omp section
+    {
+      // Triton: 0.002371 AU from Neptune, mass 0.000359 Earth, orbits Neptune in XZ plane
+      // sits within Neptune Hill sphere (~116.0 sim units), outside Neptune radius
+      float neptune_dist = 4510.5f;                            // 30.07 * 150
+      float neptune_v    = sqrt(G * 332800.0f / neptune_dist);
+      float triton_dist  = 0.356f;                             // 0.002371 * 150
+      float triton_v     = sqrt(G * 17.15f / triton_dist);    // orbital velocity around Neptune
+      bodies[26] = createBody(
+          glm::vec3(neptune_dist + triton_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(neptune_v + triton_v)),
+          0.000359f,                            // mass in Earth units
+          0.674f,                               // 0.1348 Earth radii * 5
+          glm::vec3(0.7f, 0.65f, 0.6f)         // pinkish-grey nitrogen ice
+      );
+    }
+    #pragma omp section
+    {
+      // Proteus: 0.000790 AU from Neptune, mass 0.0000000274 Earth, orbits Neptune in XZ plane
+      // sits within Neptune Hill sphere (~116.0 sim units), outside Neptune radius
+      float neptune_dist  = 4510.5f;                           // 30.07 * 150
+      float neptune_v     = sqrt(G * 332800.0f / neptune_dist);
+      float proteus_dist  = 0.119f;                            // 0.000790 * 150
+      float proteus_v     = sqrt(G * 17.15f / proteus_dist);  // orbital velocity around Neptune
+      bodies[27] = createBody(
+          glm::vec3(neptune_dist + proteus_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(neptune_v + proteus_v)),
+          0.0000000274f,                        // mass in Earth units
+          0.18f,                                // 0.0356 Earth radii * 5, floored for visibility
+          glm::vec3(0.35f, 0.35f, 0.35f)       // dark grey
+      );
+    }
+    #pragma omp section
+    {
+      // Nereid: 0.0369 AU from Neptune, mass 0.0000000270 Earth, orbits Neptune in XZ plane
+      // sits within Neptune Hill sphere (~116.0 sim units), outside Triton orbit
+      float neptune_dist = 4510.5f;                            // 30.07 * 150
+      float neptune_v    = sqrt(G * 332800.0f / neptune_dist);
+      float nereid_dist  = 5.535f;                             // 0.0369 * 150
+      float nereid_v     = sqrt(G * 17.15f / nereid_dist);    // orbital velocity around Neptune
+      bodies[28] = createBody(
+          glm::vec3(neptune_dist + nereid_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(neptune_v + nereid_v)),
+          0.0000000270f,                        // mass in Earth units
+          0.17f,                                // 0.0340 Earth radii * 5, floored for visibility
+          glm::vec3(0.45f, 0.45f, 0.42f)       // grey
+      );
+    }
+    #pragma omp section
+    {
+      // Larissa: 0.000494 AU from Neptune, mass 0.00000000618 Earth, orbits Neptune in XZ plane
+      // sits within Neptune Hill sphere (~116.0 sim units), outside Neptune radius
+      float neptune_dist = 4510.5f;                            // 30.07 * 150
+      float neptune_v    = sqrt(G * 332800.0f / neptune_dist);
+      float larissa_dist = 0.074f;                             // 0.000494 * 150
+      float larissa_v    = sqrt(G * 17.15f / larissa_dist);   // orbital velocity around Neptune
+      bodies[29] = createBody(
+          glm::vec3(neptune_dist + larissa_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(neptune_v + larissa_v)),
+          0.00000000618f,                       // mass in Earth units
+          0.15f,                                // 0.0291 Earth radii * 5, floored for visibility
+          glm::vec3(0.4f, 0.4f, 0.38f)         // dark grey
       );
     }
   }
