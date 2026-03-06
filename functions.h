@@ -1,19 +1,23 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
-
 #include <glm/glm.hpp>
 #include <vector>
+#include <deque>
 
 // Gravitational constant (arbitrary scale for simulation)
 const float G = 6.67430e-3f; // scaled down for visual simulation
 
+// Trail length — how many past positions to keep per body
+const int TRAIL_LENGTH = 200;
+
 // Struct representing a celestial body
 struct Body {
-  glm::vec3 position;        // current position
-  glm::vec3 velocity;        // current velocity
-  float mass;                // mass (affects gravity)
-  float radius;              // for rendering
-  glm::vec3 color;           // RGB color
+  glm::vec3 position;          // current position
+  glm::vec3 velocity;          // current velocity
+  float mass;                  // mass (affects gravity)
+  float radius;                // for rendering
+  glm::vec3 color;             // RGB color
+  std::deque<glm::vec3> trail; // position history for orbit trail
 };
 
 // Physics update: compute gravitational forces and update velocities & positions
@@ -31,4 +35,4 @@ Body createBody(const glm::vec3& position,
 // Factory: create the full solar system
 std::vector<Body> createSolarSystem();
 
-#endif 
+#endif

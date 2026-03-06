@@ -30,13 +30,18 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Enable depth test for proper 3D rendering
     glEnable(GL_DEPTH_TEST);
 
-    // --- Enable lighting ---
+    // Enable alpha blending for trail fade effect
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Enable lighting 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);  // Light 0
 
@@ -58,7 +63,7 @@ int main() {
     gluPerspective(45.0, 800.0/600.0, 0.1, 10000.0);
     glMatrixMode(GL_MODELVIEW);
 
-    // --- Create bodies ---
+    // Create bodies 
     std::vector<Body> bodies = createSolarSystem();
 
     // Main loop
@@ -76,10 +81,10 @@ int main() {
         GLfloat light_pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };  // light at sun position
         glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
-        // --- Update physics ---
+        // Update physics 
         updateGravity(bodies, 0.01f);
 
-        // --- Draw all bodies ---
+        //  Draw all bodies 
         for (auto& body : bodies) {
             drawBody(body);
         }
