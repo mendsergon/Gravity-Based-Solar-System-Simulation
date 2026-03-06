@@ -10,6 +10,12 @@ const float G = 6.67430e-3f; // scaled down for visual simulation
 // Trail length — how many past positions to keep per body
 const int TRAIL_LENGTH = 200;
 
+// Zoom level passed from main — used to scale sphere detail in drawBody
+extern float g_zoomFactor;
+
+// Camera position passed from main — used to enforce minimum apparent size in drawBody
+extern float g_camX, g_camY, g_camZ;
+
 // Struct representing a celestial body
 struct Body {
   glm::vec3 position;          // current position

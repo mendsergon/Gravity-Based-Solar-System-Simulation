@@ -7,6 +7,8 @@
 #include <iostream>
 #include <omp.h> // OpenMP for parallel physics calculations
 
+float g_zoomFactor = 1.0f;
+
 // Create a single celestial body with given parameters
 Body createBody(const glm::vec3& position,
                 const glm::vec3& velocity,
@@ -560,7 +562,12 @@ void drawBody(const Body& body) {
   GLfloat emissive[] = { body.color.r, body.color.g, body.color.b, 1.0f };
   glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissive);
 
-  gluSphere(quad, body.radius, 20, 20); // radius, slices, stacks
+  // Scale sphere detail with zoom — more slices when zoomed in
+  int detail = (int)(20.0f / g_zoomFactor);
+  if (detail < 20)  detail = 20;   // minimum detail
+  if (detail > 100) detail = 100;  // cap to avoid slowdown
+
+  gluSphere(quad, body.radius, detail, detail);
 
   // Reset emissive so future planets are shaded normally
   GLfloat no_emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -583,5 +590,3 @@ void drawBody(const Body& body) {
   glPopMatrix();
   gluDeleteQuadric(quad);
 }
-
-
