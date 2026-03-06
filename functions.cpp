@@ -23,7 +23,7 @@ Body createBody(const glm::vec3& position,
 }
 
 std::vector<Body> createSolarSystem() {
-  std::vector<Body> bodies(5); // pre-size for sun + mercury + venus + earth + moon
+  std::vector<Body> bodies(8); // pre-size for sun + mercury + venus + earth + moon + mars + phobos + deimos
   #pragma omp parallel sections
   {
     #pragma omp section
@@ -33,8 +33,8 @@ std::vector<Body> createSolarSystem() {
           glm::vec3(0.0f, 0.0f, 0.0f),
           glm::vec3(0.0f, 0.0f, 0.0f),
           332800.0f,                    // mass in Earth units
-          32.8f,                        // radius scaled to Earth
-          glm::vec3(1.0f, 1.0f, 0.0f)  // yellow color
+          32.8f,                        // intentionally compressed or it dwarfs everything
+          glm::vec3(1.0f, 1.0f, 0.0f)  // yellow
       );
     }
     #pragma omp section
@@ -47,7 +47,7 @@ std::vector<Body> createSolarSystem() {
           glm::vec3(mercury_dist, 0.0f, 0.0f),
           glm::vec3(0.0f, 0.0f, -mercury_v),
           0.0553f,                              // mass in Earth units
-          0.15f,                                // below Hill sphere ~0.22
+          1.9f,                                 // 0.383 Earth radii * 5
           glm::vec3(0.6f, 0.6f, 0.6f)          // grey
       );
     }
@@ -61,7 +61,7 @@ std::vector<Body> createSolarSystem() {
           glm::vec3(venus_dist, 0.0f, 0.0f),
           glm::vec3(0.0f, 0.0f, -venus_v),
           0.815f,                               // mass in Earth units
-          0.85f,                                // below Hill sphere ~1.0, bigger than Mercury
+          4.75f,                                // 0.950 Earth radii * 5
           glm::vec3(0.9f, 0.75f, 0.45f)        // yellowish-orange
       );
     }
@@ -75,7 +75,7 @@ std::vector<Body> createSolarSystem() {
           glm::vec3(earth_dist, 0.0f, 0.0f),
           glm::vec3(0.0f, 0.0f, -earth_v),
           1.0f,                                 // mass in Earth units
-          1.0f,                                 // below Hill sphere ~1.5, bigger than Venus
+          5.0f,                                 // 1.0 Earth radii * 5 — anchor
           glm::vec3(0.2f, 0.4f, 1.0f)          // blue
       );
     }
@@ -91,8 +91,54 @@ std::vector<Body> createSolarSystem() {
           glm::vec3(earth_dist + moon_dist, 0.0f, 0.0f),
           glm::vec3(0.0f, 0.0f, -(earth_v + moon_v)),
           0.0123f,                                            // mass in Earth units
-          0.3f,                                               // below Hill sphere, smaller than Earth
+          1.37f,                                              // 0.273 Earth radii * 5
           glm::vec3(0.7f, 0.7f, 0.7f)                        // grey
+      );
+    }
+    #pragma omp section
+    {
+      // Mars: 1.524 AU, mass 0.107 Earth, circular orbit in XZ plane
+      // Hill sphere ~1.086 sim units, radius kept below that
+      float mars_dist = 228.6f;                              // 1.524 * 150
+      float mars_v    = sqrt(G * 332800.0f / mars_dist);
+      bodies[5] = createBody(
+          glm::vec3(mars_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -mars_v),
+          0.107f,                               // mass in Earth units
+          2.66f,                                // 0.532 Earth radii * 5
+          glm::vec3(0.8f, 0.3f, 0.1f)          // red-orange
+      );
+    }
+    #pragma omp section
+    {
+      // Phobos: 0.0000626 AU from Mars, mass 1.0659e-8 Earth, orbits Mars in XZ plane
+      // sits within Mars Hill sphere (~1.086 sim units), outside Mars radius
+      float mars_dist   = 228.6f;                            // 1.524 * 150
+      float mars_v      = sqrt(G * 332800.0f / mars_dist);
+      float phobos_dist = 0.3f;                              // within Hill sphere ~1.086
+      float phobos_v    = sqrt(G * 0.107f / phobos_dist);   // orbital velocity around Mars
+      bodies[6] = createBody(
+          glm::vec3(mars_dist + phobos_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(mars_v + phobos_v)),
+          1.0659e-8f,                                         // mass in Earth units
+          0.5f,                                               // floored for visibility, true size sub-pixel
+          glm::vec3(0.6f, 0.5f, 0.4f)                        // dark grey-brown
+      );
+    }
+    #pragma omp section
+    {
+      // Deimos: 0.000157 AU from Mars, mass 1.4762e-9 Earth, orbits Mars in XZ plane
+      // sits within Mars Hill sphere (~1.086 sim units), outside Phobos orbit
+      float mars_dist   = 228.6f;                            // 1.524 * 150
+      float mars_v      = sqrt(G * 332800.0f / mars_dist);
+      float deimos_dist = 0.6f;                              // within Hill sphere ~1.086, outside Phobos
+      float deimos_v    = sqrt(G * 0.107f / deimos_dist);   // orbital velocity around Mars
+      bodies[7] = createBody(
+          glm::vec3(mars_dist + deimos_dist, 0.0f, 0.0f),
+          glm::vec3(0.0f, 0.0f, -(mars_v + deimos_v)),
+          1.4762e-9f,                                         // mass in Earth units
+          0.4f,                                               // floored for visibility, smaller than Phobos
+          glm::vec3(0.5f, 0.45f, 0.35f)                      // dark grey-brown, slightly lighter
       );
     }
   }
@@ -106,15 +152,17 @@ void updateGravity(std::vector<Body>& bodies, float deltaTime) {
   std::vector<glm::vec3> forces(n, glm::vec3(0.0f));
 
   // Compute forces (parallelized over bodies)
-#pragma omp parallel for schedule(static)
+  #pragma omp parallel for schedule(static)
   for (size_t i = 0; i < n; ++i) {
     glm::vec3 totalForce(0.0f);
     for (size_t j = 0; j < n; ++j) {
       if (i == j) continue;
+
       glm::vec3 dir = bodies[j].position - bodies[i].position;
       float distSqr = glm::dot(dir, dir) + 1e-4f;
       float dist = sqrt(distSqr);
       glm::vec3 force = (G * bodies[i].mass * bodies[j].mass / distSqr) * (dir / dist);
+
       totalForce += force;
     }
     forces[i] = totalForce;
@@ -128,7 +176,7 @@ void updateGravity(std::vector<Body>& bodies, float deltaTime) {
     bodies[i].position += bodies[i].velocity * deltaTime;
   }
 
-  // Record trail positions — separate parallel loop, each thread owns its own body
+  // Record trail positions — each thread owns its own body, no race condition
   #pragma omp parallel for schedule(static)
   for (size_t i = 0; i < n; ++i) {
     bodies[i].trail.push_back(bodies[i].position);
