@@ -133,6 +133,11 @@ int main() {
         g_zoomFactor = zoomFactor; // pass zoom to drawBody for sphere detail scaling
         float camDist = maxDist * 2.0f * zoomFactor; // camera distance drives zoom
 
+        // Camera position passed to drawBody for minimum apparent size calculation
+        g_camX = camTargetX;
+        g_camY = camDist * 0.3f + camTargetY;
+        g_camZ = camTargetZ + camDist;
+
         // Update projection each frame to match scene size
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -142,7 +147,7 @@ int main() {
         glLoadIdentity();
 
         // Camera pulled back to fit the full solar system in view, target shifts on scroll
-        gluLookAt(camTargetX, camDist * 0.3f + camTargetY, camTargetZ + camDist,
+        gluLookAt(g_camX, g_camY, g_camZ,
                   camTargetX, camTargetY, camTargetZ,
                   0.0, 1.0, 0.0);
 

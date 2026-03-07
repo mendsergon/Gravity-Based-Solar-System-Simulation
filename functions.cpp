@@ -8,6 +8,7 @@
 #include <omp.h> // OpenMP for parallel physics calculations
 
 float g_zoomFactor = 1.0f;
+float g_camX = 0.0f, g_camY = 0.0f, g_camZ = 0.0f;
 
 // Create a single celestial body with given parameters
 Body createBody(const glm::vec3& position,
@@ -448,7 +449,7 @@ std::vector<Body> createSolarSystem() {
     }
     #pragma omp section
     {
-      // Proteus: 0.000790 AU from Neptune, mass 0.0000000274 Earth, orbits Neptune in XZ plane
+      // Proteus: 0.000790 AU from Neptune, mass 2.74e-8 Earth, orbits Neptune in XZ plane
       // sits within Neptune Hill sphere (~116.0 sim units), outside Neptune radius
       float neptune_dist  = 4510.5f;                           // 30.07 * 150
       float neptune_v     = sqrt(G * 332800.0f / neptune_dist);
@@ -457,14 +458,14 @@ std::vector<Body> createSolarSystem() {
       bodies[27] = createBody(
           glm::vec3(neptune_dist + proteus_dist, 0.0f, 0.0f),
           glm::vec3(0.0f, 0.0f, -(neptune_v + proteus_v)),
-          0.0000000274f,                        // mass in Earth units
+          2.74e-8f,                             // mass in Earth units
           0.18f,                                // 0.0356 Earth radii * 5, floored for visibility
           glm::vec3(0.35f, 0.35f, 0.35f)       // dark grey
       );
     }
     #pragma omp section
     {
-      // Nereid: 0.0369 AU from Neptune, mass 0.0000000270 Earth, orbits Neptune in XZ plane
+      // Nereid: 0.0369 AU from Neptune, mass 2.70e-8 Earth, orbits Neptune in XZ plane
       // sits within Neptune Hill sphere (~116.0 sim units), outside Triton orbit
       float neptune_dist = 4510.5f;                            // 30.07 * 150
       float neptune_v    = sqrt(G * 332800.0f / neptune_dist);
@@ -473,14 +474,14 @@ std::vector<Body> createSolarSystem() {
       bodies[28] = createBody(
           glm::vec3(neptune_dist + nereid_dist, 0.0f, 0.0f),
           glm::vec3(0.0f, 0.0f, -(neptune_v + nereid_v)),
-          0.0000000270f,                        // mass in Earth units
+          2.70e-8f,                             // mass in Earth units
           0.17f,                                // 0.0340 Earth radii * 5, floored for visibility
           glm::vec3(0.45f, 0.45f, 0.42f)       // grey
       );
     }
     #pragma omp section
     {
-      // Larissa: 0.000494 AU from Neptune, mass 0.00000000618 Earth, orbits Neptune in XZ plane
+      // Larissa: 0.000494 AU from Neptune, mass 6.18e-9 Earth, orbits Neptune in XZ plane
       // sits within Neptune Hill sphere (~116.0 sim units), outside Neptune radius
       float neptune_dist = 4510.5f;                            // 30.07 * 150
       float neptune_v    = sqrt(G * 332800.0f / neptune_dist);
@@ -489,7 +490,7 @@ std::vector<Body> createSolarSystem() {
       bodies[29] = createBody(
           glm::vec3(neptune_dist + larissa_dist, 0.0f, 0.0f),
           glm::vec3(0.0f, 0.0f, -(neptune_v + larissa_v)),
-          0.00000000618f,                       // mass in Earth units
+          6.18e-9f,                             // mass in Earth units
           0.15f,                                // 0.0291 Earth radii * 5, floored for visibility
           glm::vec3(0.4f, 0.4f, 0.38f)         // dark grey
       );
@@ -567,7 +568,19 @@ void drawBody(const Body& body) {
   if (detail < 20)  detail = 20;   // minimum detail
   if (detail > 100) detail = 100;  // cap to avoid slowdown
 
-  gluSphere(quad, body.radius, detail, detail);
+  // Enforce minimum apparent size — prevents bodies going sub-pixel when camera is far
+  float dx = body.position.x - g_camX;
+  float dy = body.position.y - g_camY;
+  float dz = body.position.z - g_camZ;
+  float distToCam    = sqrtf(dx*dx + dy*dy + dz*dz);
+  float minRadius    = distToCam * 0.00138f; // 2px on 600px screen at 45 FOV
+  float renderRadius = fmaxf(body.radius, minRadius);
+
+  // Small bodies (moons) sit inside their planet's rendered sphere — depth test hides them
+  // Disable it so moons always draw on top, same as every real solar system simulator
+  if (body.radius < 5.0f) glDisable(GL_DEPTH_TEST);
+  gluSphere(quad, renderRadius, detail, detail);
+  if (body.radius < 5.0f) glEnable(GL_DEPTH_TEST);
 
   // Reset emissive so future planets are shaded normally
   GLfloat no_emissive[] = { 0.0f, 0.0f, 0.0f, 1.0f };
