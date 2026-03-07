@@ -1,4 +1,5 @@
 # **Gravity-Based Solar System Simulation (OpenGL + OpenMP)**
+### v1.0.0
 
 ### **Project Summary**
 
