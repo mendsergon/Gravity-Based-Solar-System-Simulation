@@ -577,7 +577,6 @@ void drawBody(const Body& body) {
   float renderRadius = fmaxf(body.radius, minRadius);
 
   // Small bodies (moons) sit inside their planet's rendered sphere — depth test hides them
-  // Disable it so moons always draw on top, same as every real solar system simulator
   if (body.radius < 5.0f) glDisable(GL_DEPTH_TEST);
   gluSphere(quad, renderRadius, detail, detail);
   if (body.radius < 5.0f) glEnable(GL_DEPTH_TEST);
